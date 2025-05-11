@@ -1,0 +1,95 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model User {
+  id       Int     @id @default(autoincrement())
+  username String  @unique
+  password String
+
+  salt     Salt?
+  sentRequests     FriendRequest[] @relation("SentRequests")
+  receivedRequests FriendRequest[] @relation("ReceivedRequests")
+  friends          Friend[]        @relation("UserFriends")
+
+  sender     Message[]     @relation("SentMessages")
+  receiver   Message[]     @relation("ReceivedMessages")
+
+  groups GroupMember[]    @relation("belongingGroups")
+  groupMessages GroupMessage[] @relation("sentGruopMessages")
+}
+
+model FriendRequest {
+  id        Int    @id @default(autoincrement())
+  fromId    Int
+  toId      Int
+  status    String // 'pending', 'accepted', 'declined'
+
+  from      User   @relation("SentRequests", fields: [fromId], references: [id])
+  to        User   @relation("ReceivedRequests", fields: [toId], references: [id])
+}
+
+model Friend {
+  id       Int    @id @default(autoincrement())
+  userId   Int
+  friendId Int
+
+  user     User   @relation("UserFriends", fields: [userId], references: [id])
+}
+
+model Salt {
+  id     Int    @id @default(autoincrement())
+  userId Int    @unique
+  value  String
+
+  user   User   @relation(fields: [userId], references: [id])
+}
+
+model Message {
+  id        Int      @id @default(autoincrement())
+  senderUsername  String
+  receiverUsername String
+  
+  content   String
+  timestamp DateTime @default(now())
+
+  sender    User     @relation("SentMessages", fields: [senderUsername], references: [username])
+  receiver  User     @relation("ReceivedMessages", fields: [receiverUsername], references: [username])
+  
+}
+
+model Group {
+  id          Int             @id @default(autoincrement())
+  name        String          @unique
+  
+  members     GroupMember[]    @relation("group")
+  messages    GroupMessage[]  @relation("messageRecord")
+}
+
+model GroupMember {
+  id        Int     @id @default(autoincrement())
+  username  String
+  groupname   String
+
+  user      User    @relation("belongingGroups", fields: [username], references: [username])
+  group     Group   @relation("group", fields: [groupname], references: [name])
+}
+
+model GroupMessage {
+  id        Int      @id @default(autoincrement())
+  groupname   String
+  senderusername  String
+  content   String
+  timestamp DateTime @default(now())
+
+  group     Group    @relation("messageRecord", fields: [groupname], references: [name])
+  sender    User     @relation("sentGruopMessages", fields: [senderusername], references: [username])
+}
+
+
+

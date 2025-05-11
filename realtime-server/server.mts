@@ -1,0 +1,61 @@
+import { createServer } from 'http'
+import { Server } from 'socket.io'
+import { PrismaClient } from '@prisma/client'
+
+const prisma = new PrismaClient()
+
+
+// try {
+//   const { prisma } = await import('./prisma')
+//   console.log('Prisma loaded:', typeof prisma)
+// } catch (err) {
+//   console.error('Failed to load prisma:', err)
+// }
+
+
+const httpServer = createServer()
+const io = new Server(httpServer, {
+  cors: {
+    origin: 'http://localhost:3000',
+    methods: ['GET', 'POST']
+  }
+})
+
+io.on('connection', (socket) => {
+  console.log('Client connected:', socket.id)
+  console.log('Prisma instance:', typeof prisma)
+
+  socket.on('message', async (data) => {
+    const { senderUsername, receiverUsername, content } = data
+
+    if (!senderUsername || !receiverUsername || !content) return
+
+    try {
+      const sender = await prisma.user.findUnique({ where: { username: senderUsername } })
+      const receiver = await prisma.user.findUnique({ where: { username: receiverUsername } })
+
+      if (!sender || !receiver) return
+
+      const message = await prisma.message.create({
+        data: {
+          senderUsername: sender.username,
+          receiverUsername: receiver.username,
+          content
+        }
+      })
+
+      // Broadcast the saved message to all other clients
+      io.emit('message', message)
+    } catch (err) {
+      console.error('Failed to save message:', err)
+    }
+  })
+
+  socket.on('disconnect', () => {
+    console.log('Client disconnected:', socket.id)
+  })
+})
+
+httpServer.listen(3001, () => {
+  console.log('Socket.IO server running on http://localhost:3001')
+})
