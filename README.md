@@ -12,9 +12,13 @@ Then run the following commands one by one
 
 ```bash
 npm install
-cp .env.example .env   # or create .env manually
 npx prisma generate
 npx prisma db push      # or migrate dev
+```
+
+After this your .env should only have
+```
+DATABASE_URL="file:./dev.db"
 ```
 
 
