@@ -6,6 +6,11 @@ This is must read document to run the program
 
 This process is written assuming that you have pulled this repository from github.
 
+If you never installed next js or node js then first you should download node js file from below url
+```
+nodejs.org
+```
+
 First, cd to root of the project. Root directory name is "info2222-p2"
 
 Then run the following commands one by one 
