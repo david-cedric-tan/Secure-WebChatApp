@@ -18,13 +18,14 @@ Then run the following commands one by one
 ```bash
 npm install
 npx prisma generate
-npx prisma db push      # or migrate dev
+npx prisma migrate dev --name initial
 ```
 
 After this your .env should only have
 ```
 DATABASE_URL="file:./dev.db"
 ```
+If it is not like this just force make file named ".env" under project root and just put above line into the file and save it
 
 
 ## Getting Started
