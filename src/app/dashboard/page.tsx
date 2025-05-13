@@ -92,12 +92,21 @@ export default function DashboardPage() {
   const socketRef = useRef<Socket | null>(null)
 
   useEffect(() => {
-    socketRef.current = io('http://localhost:3001')
+    socketRef.current = io('https://localhost:3001',
+     {rejectUnauthorized: true,})
 
     socketRef.current.on('connect', () => {
       console.log('Connected to socket:', socketRef.current?.id)
     })
 
+    socketRef.current.on('connect_error', (error) => {
+      console.error('Socket connection error:', error)
+      // Handle certificate verification failures
+      if (error.message.includes('certificate')) {
+        setError('Failed to verify server certificate')
+      }
+    })
+    
     socketRef.current.on('message', (msg) => {
       // Append received message to your state
       setMessages(prev => [...prev, msg])

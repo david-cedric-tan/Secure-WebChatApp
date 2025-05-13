@@ -1,6 +1,13 @@
-import { createServer } from 'http'
+import { createServer } from 'https'
+import { readFileSync } from 'fs';
 import { Server } from 'socket.io'
 import { PrismaClient } from '@prisma/client'
+import { fileURLToPath } from 'url';
+import path from 'path';
+
+// Calculate __dirname equivalent for ES modules
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const prisma = new PrismaClient()
 
@@ -13,10 +20,13 @@ const prisma = new PrismaClient()
 // }
 
 
-const httpServer = createServer()
-const io = new Server(httpServer, {
+const httpsServer = createServer({
+  key: readFileSync(path.join(__dirname, '../certs/server.key')), //replace with own server key
+  cert: readFileSync(path.join(__dirname, '../certs/server.crt'))}
+)
+const io = new Server(httpsServer, {
   cors: {
-    origin: 'http://localhost:3000',
+    origin: 'https://localhost:3000',
     methods: ['GET', 'POST']
   }
 })
@@ -56,6 +66,6 @@ io.on('connection', (socket) => {
   })
 })
 
-httpServer.listen(3001, () => {
-  console.log('Socket.IO server running on http://localhost:3001')
+httpsServer.listen(3001, () => {
+  console.log('Socket.IO server running on https://localhost:3001')
 })

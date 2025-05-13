@@ -48,3 +48,28 @@ npm run dev terminal should be opened in localhost:3000
 and socket should be in localhost:3001 this MUST be matching for functional running.
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+
+
+
+## Setting up Certitifcate
+
+Locate and enter the Certs Directory
+```cd Certs```
+
+Generate Certificate Authority
+```
+openssl genrsa -out ca.key 2048
+openssl req -x509 -new -nodes -key ca.key -sha256 -days 3650 -out ca.crt
+-subj "/C=AU/ST=NSW/L=Sydney/O=USYD/OU=Student/CN=DevCA"
+```
+
+Generate Server Certificate Signing Request
+```
+openssl genrsa -out server.key 2048
+openssl req -new -key server.key -out server.csr
+-subj "/C=AU/ST=NSW/L=Sydney/O=USYD/OU=Student/CN=localhost"
+```
+
+Sign Server Certificate with CA
+```openssl x509 -req -in server.csr -CA ca.crt -CAkey ca.key -CAcreateserial \
+-out server.crt -days 365 -sha256```

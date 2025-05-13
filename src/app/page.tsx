@@ -10,7 +10,28 @@ export default function LoginPage() {
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
+  const socketRef = useRef<Socket | null>(null);
 
+  useEffect(() => {
+    // Connect to the Socket.IO server over HTTPS
+    socketRef.current = io('https://localhost:3001', {
+      rejectUnauthorized: true, // Enable certificate verification
+      ca: process.env.NEXT_PUBLIC_CA_CERT || undefined, // Optionally provide CA cert if hardcoded
+    });
+
+    socketRef.current.on('connect', () => {
+      console.log('Connected to Socket.IO server');
+    });
+
+    socketRef.current.on('connect_error', (err) => {
+      console.error('Connection error:', err.message);
+    });
+
+    return () => {
+      socketRef.current?.disconnect();
+    };
+  }, []);
+  
   const sha256 = async (text: string) => {
     const encoder = new TextEncoder()
     const data = encoder.encode(text)
