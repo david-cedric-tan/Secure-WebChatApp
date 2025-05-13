@@ -1,5 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { decryptMessage } from '@/lib/encryption'
+
+
+type Message = {
+  id: string
+  content: string
+  senderId: string
+  receiverId: string
+  timestamp: Date
+  senderUsername?: string
+  receiverUsername?: string
+}
 
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url)
@@ -25,7 +37,12 @@ export async function GET(req: NextRequest) {
       ]
     },
     orderBy: { timestamp: 'asc' }
-  })
+  }) as Message[]
 
-  return NextResponse.json({ messages })
+  const decryptedMessages = messages.map(m => ({
+    ...m,
+    content: decryptMessage(m.content)
+  }))
+
+  return NextResponse.json({ messages: decryptedMessages })
 }
