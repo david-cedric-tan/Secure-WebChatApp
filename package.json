@@ -8,7 +8,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "socket": "node --loader ts-node/esm realtime-server/server.mts"
+    "socket": "node --loader ts-node/esm realtime-server/server.mts",
+    "caddy": "caddy run --config ~/caddy/Caddyfile --watch"
   },
   "dependencies": {
     "@prisma/client": "^6.7.0",

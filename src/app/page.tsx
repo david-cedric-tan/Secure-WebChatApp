@@ -10,47 +10,54 @@ export default function LoginPage() {
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
-  const socketRef = useRef<Socket | null>(null);
+  const socketRef = useRef<Socket | null>(null)
 
   useEffect(() => {
-    // Connect to the Socket.IO server over HTTPS
-    socketRef.current = io('https://localhost:3001', {
-      rejectUnauthorized: true, // Enable certificate verification
-      ca: process.env.NEXT_PUBLIC_CA_CERT || undefined, // Optionally provide CA cert if hardcoded
-    });
+    socketRef.current = io('https://alien888.duckdns.org', {
+      path: '/socket.io',
+      withCredentials: true,
+    })
 
     socketRef.current.on('connect', () => {
-      console.log('Connected to Socket.IO server');
-    });
+      console.log('Connected to Socket.IO server')
+    })
 
     socketRef.current.on('connect_error', (err) => {
-      console.error('Connection error:', err.message);
-    });
+      console.error('Connection error:', err.message)
+      setError('Failed to connect to messaging server')
+    })
 
     return () => {
-      socketRef.current?.disconnect();
-    };
-  }, []);
-  
+      socketRef.current?.disconnect()
+    }
+  }, [])
+
   const sha256 = async (text: string) => {
     const encoder = new TextEncoder()
     const data = encoder.encode(text)
     const hash = await crypto.subtle.digest('SHA-256', data)
-    return Array.from(new Uint8Array(hash)).map(b => b.toString(16).padStart(2, '0')).join('')
+    return Array.from(new Uint8Array(hash))
+      .map((b) => b.toString(16).padStart(2, '0'))
+      .join('')
   }
 
   const handleLogin = async () => {
-    const hashedPassword = await sha256(password)
-    const res = await fetch('/api/login', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username, password: hashedPassword })
-    })
-    const data = await res.json()
-    if (res.ok) {
-      router.push(`/dashboard?username=${username}`)
-    } else {
-      setError(data.error)
+    try {
+      const hashedPassword = await sha256(password)
+      const res = await fetch('/api/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password: hashedPassword }),
+      })
+      const data = await res.json()
+      if (res.ok) {
+        router.push(`/dashboard?username=${username}`)
+      } else {
+        setError(data.error || 'Login failed')
+      }
+    } catch (err) {
+      console.error('Fetch error:', err)
+      setError('Failed to connect to server: ' + err.message)
     }
   }
 

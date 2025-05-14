@@ -1,0 +1,14 @@
+alien888.duckdns.org {
+    encode gzip
+
+    # Logging (optional)
+    log {
+        output file /tmp/caddy-access.log
+    }
+
+    # Socket.IO backend (your realtime-server likely runs on port 3001)
+    reverse_proxy /socket.io* localhost:3001
+
+    # Next.js frontend server (port 3000)
+    reverse_proxy localhost:3000
+}

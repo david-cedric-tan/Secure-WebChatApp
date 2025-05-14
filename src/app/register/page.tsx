@@ -2,33 +2,62 @@
 'use client'
 
 import { useRouter } from 'next/navigation'
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
+import { io, Socket } from 'socket.io-client'
 
 export default function RegisterPage() {
   const router = useRouter()
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
+  const socketRef = useRef<Socket | null>(null)
+
+  useEffect(() => {
+    socketRef.current = io('https://alien888.duckdns.org', {
+      path: '/socket.io',
+      withCredentials: true,
+    })
+
+    socketRef.current.on('connect', () => {
+      console.log('Connected to Socket.IO server')
+    })
+
+    socketRef.current.on('connect_error', (err) => {
+      console.error('Connection error:', err.message)
+      setError('Failed to connect to messaging server')
+    })
+
+    return () => {
+      socketRef.current?.disconnect()
+    }
+  }, [])
 
   const sha256 = async (text: string) => {
     const encoder = new TextEncoder()
     const data = encoder.encode(text)
     const hash = await crypto.subtle.digest('SHA-256', data)
-    return Array.from(new Uint8Array(hash)).map(b => b.toString(16).padStart(2, '0')).join('')
+    return Array.from(new Uint8Array(hash))
+      .map((b) => b.toString(16).padStart(2, '0'))
+      .join('')
   }
 
   const handleRegister = async () => {
-    const hashedPassword = await sha256(password)
-    const res = await fetch('/api/register', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username, password: hashedPassword })
-    })
-    const data = await res.json()
-    if (res.ok) {
-      router.push(`/dashboard?username=${username}`)
-    } else {
-      setError(data.error)
+    try {
+      const hashedPassword = await sha256(password)
+      const res = await fetch('/api/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password: hashedPassword }),
+      })
+      const data = await res.json()
+      if (res.ok) {
+        router.push(`/dashboard?username=${username}`)
+      } else {
+        setError(data.error || `Registration failed (Status: ${res.status})`)
+      }
+    } catch (err) {
+      console.error('Fetch error:', err)
+      setError('Failed to connect to server: ' + err.message)
     }
   }
 
@@ -53,6 +82,9 @@ export default function RegisterPage() {
         Register
       </button>
       {error && <p className="text-red-500 mb-2">{error}</p>}
+      <button className="text-blue-700 underline" onClick={() => router.push('/')}>
+        Already have an account? Login
+      </button>
     </main>
   )
 }
