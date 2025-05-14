@@ -98,7 +98,7 @@ export default function DashboardPage() {
         const data = await res.json()
         setMessages(data.messages || [])
       } catch (err) {
-        setError((err as Error).message)
+        //setError((err as Error).message)
       }
     }
     fetchMessages()
