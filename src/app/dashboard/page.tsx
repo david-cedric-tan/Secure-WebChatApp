@@ -27,10 +27,13 @@ export default function DashboardPage() {
   const socketRef = useRef<Socket | null>(null)
 
   useEffect(() => {
-    socketRef.current = io('https://alien888.duckdns.org', {
+  //======= UNCOMMENT THIS PART TO TEST LOCALLY ==================    
+    socketRef.current = io('http://localhost:3001')
+  //======= COMMENT THIS PART TO TEST LOCALLY ==================
+  /*  socketRef.current = io('https://alien888.duckdns.org', {
       path: '/socket.io',
       withCredentials: true,
-    })
+    })*/
 
     socketRef.current.on('connect', () => {
       console.log('Connected to socket:', socketRef.current?.id)
@@ -98,7 +101,7 @@ export default function DashboardPage() {
         const data = await res.json()
         setMessages(data.messages || [])
       } catch (err) {
-        //setError((err as Error).message)
+        setError((err as Error).message)
       }
     }
     fetchMessages()

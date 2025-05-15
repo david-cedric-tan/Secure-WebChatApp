@@ -12,25 +12,25 @@ export default function LoginPage() {
   const [error, setError] = useState('')
   const socketRef = useRef<Socket | null>(null)
 
-  useEffect(() => {
-    socketRef.current = io('https://alien888.duckdns.org', {
-      path: '/socket.io',
-      withCredentials: true,
-    })
+  // useEffect(() => {
+  //   socketRef.current = io('https://alien888.duckdns.org', {
+  //     path: '/socket.io',
+  //     withCredentials: true,
+  //   })
 
-    socketRef.current.on('connect', () => {
-      console.log('Connected to Socket.IO server')
-    })
+  //   socketRef.current.on('connect', () => {
+  //     console.log('Connected to Socket.IO server')
+  //   })
 
-    socketRef.current.on('connect_error', (err) => {
-      console.error('Connection error:', err.message)
-      setError('Failed to connect to messaging server')
-    })
+  //   socketRef.current.on('connect_error', (err) => {
+  //     console.error('Connection error:', err.message)
+  //     setError('Failed to connect to messaging server')
+  //   })
 
-    return () => {
-      socketRef.current?.disconnect()
-    }
-  }, [])
+  //   return () => {
+  //     socketRef.current?.disconnect()
+  //   }
+  // }, [])
 
   const sha256 = async (text: string) => {
     const encoder = new TextEncoder()
