@@ -1,32 +1,27 @@
 // src/app/login/route.ts
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
-import crypto from 'crypto'
-
-function sha256(text: string): string {
-  return crypto.createHash('sha256').update(text).digest('hex')
-}
+import bcrypt from 'bcrypt'
 
 export async function POST(req: Request) {
   try {
     const { username, password } = await req.json()
 
-    const user = await prisma.user.findUnique({
-      where: { username },
-      include: { salt: true },
-    })
+    if (!username || !password) {
+      return NextResponse.json({ error: 'Missing credentials' }, { status: 400 })
+    }
 
-    if (!user || !user.salt) {
+    const user = await prisma.user.findUnique({ where: { username } })
+    if (!user) {
       return NextResponse.json({ error: 'Invalid username or password' }, { status: 401 })
     }
 
-    const finalHash = sha256(password + user.salt.value)
-
-    if (finalHash !== user.password) {
+    const isValid = await bcrypt.compare(password, user.password)
+    if (!isValid) {
       return NextResponse.json({ error: 'Invalid username or password' }, { status: 401 })
     }
 
-    return NextResponse.json({ success: true }, { status: 200 })
+    return NextResponse.json({ success: true, username: user.username }, { status: 200 })
   } catch (err) {
     console.error('Login error:', err)
     return NextResponse.json({ error: 'Server error' }, { status: 500 })

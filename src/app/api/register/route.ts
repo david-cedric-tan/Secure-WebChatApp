@@ -1,11 +1,7 @@
 // src/app/register/route.ts
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
-import crypto from 'crypto'
-
-function sha256(text: string): string {
-  return crypto.createHash('sha256').update(text).digest('hex')
-}
+import bcrypt from 'bcrypt'
 
 export async function POST(req: Request) {
   try {
@@ -20,17 +16,13 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Username already taken' }, { status: 400 })
     }
 
-    const salt = crypto.randomBytes(16).toString('hex')
-    const finalHash = sha256(password + salt)
+    const hash = await bcrypt.hash(password, 10) // 10 = salt rounds (adjustable)
 
-    const newUser = await prisma.user.create({
+    await prisma.user.create({
       data: {
         username,
-        password: finalHash,
-        salt: {
-          create: { value: salt },
-        },
-      },
+        password: hash
+      }
     })
 
     return NextResponse.json({ success: true }, { status: 200 })
