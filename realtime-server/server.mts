@@ -11,13 +11,24 @@ const __dirname = path.dirname(__filename);
 const prisma = new PrismaClient();
 
 const httpServer = createServer();
-const io = new Server(httpServer, {
+
+//=============== FOR PRODUCTION alien888.duckdns.org =====================
+/*const io = new Server(httpServer, {
   cors: {
     origin: ['http://localhost:3000', 'https://alien888.duckdns.org'],
     methods: ['GET', 'POST'],
     credentials: true,
   },
-});
+});*/
+
+//=============== FOR DEVELOPMENT/TESTING LOCALHOST  =====================
+const io = new Server(httpServer, {
+  cors: {
+    origin: 'http://localhost:3000',
+    methods: ['GET', 'POST']
+  }
+})
+//======================================================================
 
 io.on('connection', (socket) => {
   console.log('Client connected:', socket.id);
@@ -53,6 +64,11 @@ io.on('connection', (socket) => {
   });
 });
 
-httpServer.listen(3001, '0.0.0.0', () => {
+//============== FOR localhost ============================
+httpServer.listen(3001, () => {
+  console.log('Socket.IO server running on http://localhost:3001')
+})
+//============== FOR PRODUCTION alien888.duckdns.org ============================
+/*httpServer.listen(3001, '0.0.0.0', () => {
   console.log('Socket.IO server running on http://0.0.0.0:3001');
-});
+});*/

@@ -29,7 +29,8 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: 'Users not found' }, { status: 404 })
   }
 
-  const messages = await prisma.message.findMany({
+//====== THIS IS THE MESSAGE BUG THAT IS CAUSING PROBLEM=================
+  /*const messages = await prisma.message.findMany({
     where: {
       OR: [
         { senderUsername: u1.username, receiverUsername: u2.username },
@@ -44,5 +45,19 @@ export async function GET(req: NextRequest) {
     content: decryptMessage(m.content)
   }))
 
-  return NextResponse.json({ messages: decryptedMessages })
+  return NextResponse.json({ messages: decryptedMessages })*/
+
+  //================ original code of kevin =======================
+  const messages = await prisma.message.findMany({
+    where: {
+      OR: [
+        { senderUsername: u1.username, receiverUsername: u2.username },
+        { senderUsername: u2.username, receiverUsername: u1.username }
+      ]
+    },
+    orderBy: { timestamp: 'asc' }
+  })
+
+  return NextResponse.json({ messages })
+
 }

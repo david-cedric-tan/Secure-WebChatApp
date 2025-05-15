@@ -4,6 +4,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { io, Socket } from 'socket.io-client'
+import { encryptMessage, decryptMessage } from '@/lib/encryption'; // Import encryption functions
 
 type Friend = {
   id: number
@@ -27,10 +28,13 @@ export default function DashboardPage() {
   const socketRef = useRef<Socket | null>(null)
 
   useEffect(() => {
-    socketRef.current = io('https://alien888.duckdns.org', {
+  //======= UNCOMMENT THIS PART TO TEST LOCALLY ==================    
+    socketRef.current = io('http://localhost:3001')
+  //======= COMMENT THIS PART TO TEST LOCALLY ==================
+  /*  socketRef.current = io('https://alien888.duckdns.org', {
       path: '/socket.io',
       withCredentials: true,
-    })
+    })*/
 
     socketRef.current.on('connect', () => {
       console.log('Connected to socket:', socketRef.current?.id)
@@ -41,9 +45,21 @@ export default function DashboardPage() {
       setError('Failed to connect to messaging server')
     })
 
+    // ======= do the DECRYPTION on client side =============
     socketRef.current.on('message', (msg) => {
+      setMessages((prev) => [
+        ...prev,
+        {
+          ...msg,
+          content: decryptMessage(msg.content), // Decrypt incoming real-time messages
+        },
+      ]);
+    });
+
+    /*socketRef.current.on('message', (msg) => {
       setMessages((prev) => [...prev, msg])
-    })
+    })*/
+    //=======================================================
 
     return () => {
       socketRef.current?.disconnect()
@@ -95,10 +111,20 @@ export default function DashboardPage() {
           const errorData = await res.json()
           throw new Error(errorData.error || `Failed to load messages (Status: ${res.status})`)
         }
-        const data = await res.json()
-        setMessages(data.messages || [])
+        const data = await res.json();
+
+        //================= Decrypt messages ========================
+        const decryptedMessages = data.messages.map((msg: any) => ({
+          ...msg,
+          content: decryptMessage(msg.content),
+        }));
+        setMessages(decryptedMessages || []);
+        //setMessages(data.messages || []);
+
+        //==========================================================
+
       } catch (err) {
-        //setError((err as Error).message)
+        setError((err as Error).message)
       }
     }
     fetchMessages()
@@ -128,18 +154,33 @@ export default function DashboardPage() {
     }
   }
 
+  
   const handleSend = () => {
     if (!newMessage.trim() || !selectedFriend || !socketRef.current) return
 
+    //================== ENCRYPT MESSAGE AT CLIENT ===========================
+    const encryptedContent = encryptMessage(newMessage); // Encrypt client-side
+    const decryptedContent = decryptMessage(encryptedContent); // Encrypt client-side
     const msg = {
       senderUsername: username,
       receiverUsername: selectedFriend.username,
+      content: encryptedContent, // Send encrypted content
+    };
+    console.log("MSG", newMessage);
+    console.log("ENCRYPTED", encryptedContent);
+    console.log("DECRYPTED", decryptedContent);
+
+    /*const msg = {
+      senderUsername: username,
+      receiverUsername: selectedFriend.username,
       content: newMessage,
-    }
+    }*/
+    //========================================================================
 
     socketRef.current.emit('message', msg)
     setNewMessage('')
   }
+
 
   return (
     <div className="flex h-screen">
