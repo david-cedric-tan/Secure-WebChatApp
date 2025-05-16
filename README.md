@@ -48,12 +48,4 @@ npm run dev terminal should be opened in localhost:3000
 and socket should be in localhost:3001 this MUST be matching for functional running.
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
-
-
-
-## Setting up Certitifcate
-
-To generate certificates please run the code below on your terminal.
-
-```chmod +x generate_certs.sh
-./generate_certs.sh```
+PLEASE NOTE that you must open through the above url not the url in the terminal

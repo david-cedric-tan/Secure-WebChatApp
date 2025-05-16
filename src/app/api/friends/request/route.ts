@@ -8,13 +8,13 @@ export async function POST(req: NextRequest) {
   if (fromUsername === toUsername) return NextResponse.json({ error: "You can't add yourself" }, { status: 400 })
 
   const from = await prisma.user.findUnique({ where: { username: fromUsername } })
-  const to = await prisma.user.findUnique({ where: { username: toUsername } })
+  // const to = await prisma.user.findUnique({ where: { username: toUsername } })
 
   //code for sql injection
-  // const query = `SELECT * FROM User WHERE username = '${toUsername}'`
-  // console.log('Running query:', query)
-  // const toArray = await prisma.$queryRawUnsafe(query)
-  // const to = toArray[0]  // since $queryRaw returns an array
+  const query = `SELECT * FROM User WHERE username = '${toUsername}'`
+  console.log('Running query:', query)
+  const toArray = await prisma.$queryRawUnsafe(query)
+  const to = toArray[0]  // since $queryRaw returns an array
 
   if (!to) return NextResponse.json({ error: 'Not existing user' }, { status: 404 })
 
@@ -57,13 +57,13 @@ export async function POST(req: NextRequest) {
     }
   })
 
-  return NextResponse.json({ success: true, message: 'Friend request sent' })
+  // return NextResponse.json({ success: true, message: 'Friend request sent' })
 
   //code for sql injection
-  // return NextResponse.json({ 
-  //   success: true,
-  //   message: `Friend request sent to ${to.username}`
-  // });
+  return NextResponse.json({ 
+    success: true,
+    message: `Friend request sent to ${to.username}`
+  });
 }
 
 
