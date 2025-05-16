@@ -12,25 +12,27 @@ export default function LoginPage() {
   const [error, setError] = useState('')
   const socketRef = useRef<Socket | null>(null)
 
-  // useEffect(() => {
-  //   socketRef.current = io('https://alien888.duckdns.org', {
-  //     path: '/socket.io',
-  //     withCredentials: true,
-  //   })
+  const PASSWORD_ENCRYPTION = process.env.NEXT_PUBLIC_PASSWORD_ENCRYPTION === 'true';
 
-  //   socketRef.current.on('connect', () => {
-  //     console.log('Connected to Socket.IO server')
-  //   })
+  useEffect(() => {
+    socketRef.current = io('https://alien888.duckdns.org', {
+      path: '/socket.io',
+      withCredentials: true,
+    })
 
-  //   socketRef.current.on('connect_error', (err) => {
-  //     console.error('Connection error:', err.message)
-  //     setError('Failed to connect to messaging server')
-  //   })
+    socketRef.current.on('connect', () => {
+      console.log('Connected to Socket.IO server')
+    })
 
-  //   return () => {
-  //     socketRef.current?.disconnect()
-  //   }
-  // }, [])
+    socketRef.current.on('connect_error', (err) => {
+      console.error('Connection error:', err.message)
+      setError('Failed to connect to messaging server')
+    })
+
+    return () => {
+      socketRef.current?.disconnect()
+    }
+  }, [])
 
   const sha256 = async (text: string) => {
     const encoder = new TextEncoder()
@@ -43,12 +45,14 @@ export default function LoginPage() {
 
   const handleLogin = async () => {
     try {
-      const hashedPassword = await sha256(password)
+      // Conditionally hash password
+      const passwordToSend = PASSWORD_ENCRYPTION ? await sha256(password) : password;
       const res = await fetch('/api/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, password: hashedPassword }),
+        body: JSON.stringify({ username, password: passwordToSend }),
       })
+
       const data = await res.json()
       if (res.ok) {
         router.push(`/dashboard?username=${username}`)

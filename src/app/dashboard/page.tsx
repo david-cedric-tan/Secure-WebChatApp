@@ -27,14 +27,16 @@ export default function DashboardPage() {
   const [newMessage, setNewMessage] = useState('')
   const socketRef = useRef<Socket | null>(null)
 
+  const MESSAGE_ENCRYPTION = process.env.NEXT_PUBLIC_MESSAGE_ENCRYPTION === 'true';
+
   useEffect(() => {
   //======= UNCOMMENT THIS PART TO TEST LOCALLY ==================    
-    socketRef.current = io('http://localhost:3001')
+    // socketRef.current = io('http://localhost:3001')
   //======= COMMENT THIS PART TO TEST LOCALLY ==================
-  /*  socketRef.current = io('https://alien888.duckdns.org', {
+    socketRef.current = io('https://alien888.duckdns.org', {
       path: '/socket.io',
       withCredentials: true,
-    })*/
+    })
 
     socketRef.current.on('connect', () => {
       console.log('Connected to socket:', socketRef.current?.id)
@@ -51,7 +53,7 @@ export default function DashboardPage() {
         ...prev,
         {
           ...msg,
-          content: decryptMessage(msg.content), // Decrypt incoming real-time messages
+          content: MESSAGE_ENCRYPTION ? decryptMessage(msg.content) : msg.content, // Decrypt only if enabled
         },
       ]);
     });
@@ -114,14 +116,18 @@ export default function DashboardPage() {
         const data = await res.json();
 
         //================= Decrypt messages ========================
-        const decryptedMessages = data.messages.map((msg: any) => ({
-          ...msg,
-          content: decryptMessage(msg.content),
-        }));
+        let decryptedMessages = data.messages;
+          if (MESSAGE_ENCRYPTION) {
+            decryptedMessages = data.messages.map((msg: any) => ({
+              ...msg,
+              content: decryptMessage(msg.content),
+            }));
+          }        
         setMessages(decryptedMessages || []);
         //setMessages(data.messages || []);
 
         //==========================================================
+
 
       } catch (err) {
         setError((err as Error).message)
@@ -159,16 +165,21 @@ export default function DashboardPage() {
     if (!newMessage.trim() || !selectedFriend || !socketRef.current) return
 
     //================== ENCRYPT MESSAGE AT CLIENT ===========================
-    const encryptedContent = encryptMessage(newMessage); // Encrypt client-side
-    const decryptedContent = decryptMessage(encryptedContent); // Encrypt client-side
+    let messageContent = newMessage;
+    if (MESSAGE_ENCRYPTION) {
+      messageContent = encryptMessage(newMessage); // Encrypt only if enabled
+    }
+
+    //const encryptedContent = encryptMessage(newMessage); // Encrypt client-side
+    //const decryptedContent = decryptMessage(encryptedContent); // Encrypt client-side
     const msg = {
       senderUsername: username,
       receiverUsername: selectedFriend.username,
-      content: encryptedContent, // Send encrypted content
+      content: messageContent, // Send encrypted content
     };
-    console.log("MSG", newMessage);
-    console.log("ENCRYPTED", encryptedContent);
-    console.log("DECRYPTED", decryptedContent);
+    //console.log("MSG", newMessage);
+    //console.log("ENCRYPTED", encryptedContent);
+    //console.log("DECRYPTED", decryptedContent);
 
     /*const msg = {
       senderUsername: username,
