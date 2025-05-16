@@ -27,6 +27,8 @@ DATABASE_URL="file:./dev.db"
 ```
 If it is not like this just force make file named ".env" under project root and just put above line into the file and save it
 
+By this initial setting, the database is empty, thus, to login and use the functionalities, it requires to register user and send friend request to do the 1 on 1 chatting.
+
 
 ## Getting Started
 
@@ -48,6 +50,7 @@ npm run dev terminal should be opened in localhost:3000
 and socket should be in localhost:3001 this MUST be matching for functional running.
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+PLEASE NOTE: that you need to open the above url not the url in the terminal.
 
 
 
