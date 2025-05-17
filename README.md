@@ -54,12 +54,60 @@ PLEASE NOTE: that you need to open the above url not the url in the terminal.
 
 
 
-## Setting up HTTPS with CA USING CADDY 
+## TOOLS
+To Check Schema use the following in terminal
+```
+npx prisma studio 
+```
 
+
+## Setting up Certitifcate
+
+To generate certificates please run the code below on your terminal.
+
+```
+chmod +x generate_certs.sh
+./generate_certs.sh 
+```
+
+## USING HTTPS with DEVCA (DEVELOPMENT MODE - LOCAL)
+To switch to local Development HTTPS with CA DEV(with private key)
+
+1. Open .env file set ```NEXT_PUBLIC_CADDY=false```
+2. run commands in 2 different terminal windows
+```
+npm run socket
+```
+```
+npm run dev
+```
+
+
+## USING HTTPS with CA USING CADDY (PRODUCTION MODE - PUBLIC ACCESS)
+1. Open .env file set ```NEXT_PUBLIC_CADDY=true```
+2. run 
+```	
+sudo caddy run --config ./Caddyfile --adapter caddyfile
+```
+3. run commands in 2 different terminal windows
+```
+npm run socket
+```
+```
+npm run dev
+```
+
+
+
+## (OPTIONAL)Setting up HTTPS with CA USING CADDY 
+Follow these steps to use your own domain and computer with automatic HTTPS.
+
+If you’d like to serve your app over HTTPS using a custom domain (e.g., yourname.duckdns.org) and Let’s Encrypt certificates, follow the instructions below:
 
 1. Find out your computer’s WAN IP 
-
-	curl http://ident.me
+```
+curl http://ident.me
+```
 
 2. Go to:  https://www.duckdns.org/ 
 	1. Register under new subdomain, choose type A for free domain
@@ -71,14 +119,11 @@ PLEASE NOTE: that you need to open the above url not the url in the terminal.
 
 4. Install Caddy 
 	Mac (install home-brew if not already installed)
+<br> </br>
+	```
 	/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-
 	brew install caddy
-	
-	caddy version
-	
-
-
+	```
 
 
 5.  Running Caddy 
@@ -92,23 +137,12 @@ PLEASE NOTE: that you need to open the above url not the url in the terminal.
 
 
 Running Caddy  
+	```
 	sudo caddy run --config ./Caddyfile --adapter caddyfile
+	```
 
 6. Run NPM RUN DEV & NPM RUN SOCKET
 
 7. Go to https://yourdomainname.duckdns.org
 
-
-
-Check Schema 
-npx prisma studio (check schema)
-
-## Setting up HTTPS with CA USING CADDY 
-To switch to local Development HTTP MODE:
-
-comment/uncomment desired environment (localhost or prod alien888.duckdns.org)
-1. realtime-server server.mts  uncomment two parts  (top n bottom)
-2. dashboard page.tsx  top part 
-3. register page.tsx top part
-4. app/page.tsx  top part
 
