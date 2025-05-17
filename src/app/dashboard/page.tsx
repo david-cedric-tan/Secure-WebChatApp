@@ -6,6 +6,7 @@ import { useSearchParams } from 'next/navigation'
 import { io, Socket } from 'socket.io-client'
 import { encryptMessage, decryptMessage } from '@/lib/encryption'; // Import encryption functions
 
+
 type Friend = {
   id: number
   username: string
@@ -28,15 +29,18 @@ export default function DashboardPage() {
   const socketRef = useRef<Socket | null>(null)
 
   const MESSAGE_ENCRYPTION = process.env.NEXT_PUBLIC_MESSAGE_ENCRYPTION === 'true';
+  const USE_CADDY = process.env.NEXT_PUBLIC_CADDY === 'true';
 
   useEffect(() => {
-  //======= UNCOMMENT THIS PART TO TEST LOCALLY ==================    
-    // socketRef.current = io('http://localhost:3001')
-  //======= COMMENT THIS PART TO TEST LOCALLY ==================
-    socketRef.current = io('https://alien888.duckdns.org', {
-      path: '/socket.io',
-      withCredentials: true,
-    })
+    // Connect to the appropriate Socket.IO server based on NEXT_PUBLIC_CADDY
+    socketRef.current = io(
+      USE_CADDY ? 'https://alien888.duckdns.org' : 'https://localhost:3001',
+      {
+        path: USE_CADDY ? '/socket.io' : undefined,
+        withCredentials: USE_CADDY,
+        secure: true, 
+      }
+    );
 
     socketRef.current.on('connect', () => {
       console.log('Connected to socket:', socketRef.current?.id)

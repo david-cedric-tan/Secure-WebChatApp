@@ -13,13 +13,19 @@ export default function RegisterPage() {
   const socketRef = useRef<Socket | null>(null)
 
   const PASSWORD_ENCRYPTION = process.env.NEXT_PUBLIC_PASSWORD_ENCRYPTION === 'true';
+  const USE_CADDY = process.env.NEXT_PUBLIC_CADDY === 'true';
 
-
+  //======= COMMENT THIS PART TO TEST LOCALLY ==================
   useEffect(() => {
-    socketRef.current = io('https://alien888.duckdns.org', {
-      path: '/socket.io',
-      withCredentials: true,
-    })
+    // Connect to the appropriate Socket.IO server based on NEXT_PUBLIC_CADDY
+    socketRef.current = io(
+      USE_CADDY ? 'https://alien888.duckdns.org' : 'https://localhost:3001',
+      {
+        path: USE_CADDY ? '/socket.io' : undefined,
+        withCredentials: USE_CADDY,
+        secure: true, 
+      }
+    );
 
     socketRef.current.on('connect', () => {
       console.log('Connected to Socket.IO server')
@@ -35,6 +41,7 @@ export default function RegisterPage() {
     }
   }, [])
 
+  
   const sha256 = async (text: string) => {
     const encoder = new TextEncoder()
     const data = encoder.encode(text)

@@ -1,33 +1,49 @@
 // server.mts
-import { createServer } from 'http';
+import { createServer as createHttpsServer } from 'https'; // For HTTPS
+import { createServer as createHttpServer } from 'http'; // For HTTP
 import { Server } from 'socket.io';
 import { PrismaClient } from '@prisma/client';
 import { fileURLToPath } from 'url';
 import path from 'path';
+import fs from 'fs'; // To read certificate files
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const prisma = new PrismaClient();
 
-const httpServer = createServer();
+// Check NEXT_PUBLIC_CADDY environment variable
+const useCaddy = process.env.NEXT_PUBLIC_CADDY === 'true';
+console.log('useCaddy in server.mts:', useCaddy); // Debug log
+console.log('NEXT_PUBLIC_CADDY:', process.env.NEXT_PUBLIC_CADDY);
 
-//=============== FOR PRODUCTION alien888.duckdns.org =====================
-const io = new Server(httpServer, {
-  cors: {
-    origin: ['http://localhost:3000', 'https://alien888.duckdns.org'],
-    methods: ['GET', 'POST'],
-    credentials: true,
-  },
-});
+let httpServer;
+
+// Conditionally create HTTP or HTTPS server
+if (!useCaddy) {
+  // Use HTTPS with CA-signed certificate for local testing
+  const certsPath = path.join(__dirname, '..', 'certs');
+  const privateKey = fs.readFileSync(path.join(certsPath, 'server.key'), 'utf8'); 
+  const certificate = fs.readFileSync(path.join(certsPath, 'server.crt'), 'utf8'); 
+  const caCertificate = fs.readFileSync(path.join(certsPath, 'ca.crt'), 'utf8');
+  const credentials = {
+    key: privateKey,
+    cert: certificate,
+    ca: caCertificate,
+  };
+  httpServer = createHttpsServer(credentials);
+} else {
+  // Use HTTP locally
+  httpServer = createHttpServer();
+}
 
 //=============== FOR DEVELOPMENT/TESTING LOCALHOST  =====================
-// const io = new Server(httpServer, {
-//   cors: {
-//     origin: 'http://localhost:3000',
-//     methods: ['GET', 'POST']
-//   }
-// })
+const io = new Server(httpServer, {
+  cors: {
+    origin: ['http://localhost:3000', 'https://localhost:3000', 'https://alien888.duckdns.org'],
+    methods: ['GET', 'POST']
+  }
+})
 //======================================================================
 
 io.on('connection', (socket) => {
@@ -65,10 +81,6 @@ io.on('connection', (socket) => {
 });
 
 //============== FOR localhost ============================
-// httpServer.listen(3001, () => {
-//   console.log('Socket.IO server running on http://localhost:3001')
-// })
-//============== FOR PRODUCTION alien888.duckdns.org ============================
-httpServer.listen(3001, '0.0.0.0', () => {
-  console.log('Socket.IO server running on http://0.0.0.0:3001');
+httpServer.listen(3001, () => {
+  console.log(`Socket.IO server running on ${useCaddy ? 'http' : 'https'}://localhost:3001`);
 });
