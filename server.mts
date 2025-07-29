@@ -49,8 +49,14 @@ if (!useCaddy) {
   });
 }
 
+// app.prepare().then(() => {
+//   httpServer.listen(port, '0.0.0.0', () => {
+//     console.log(`> Ready on ${useCaddy ? 'http' : 'https'}://0.0.0.0:${port}`);
+//   });
+// });
+
 app.prepare().then(() => {
-  httpServer.listen(port, '0.0.0.0', () => {
-    console.log(`> Ready on ${useCaddy ? 'http' : 'https'}://0.0.0.0:${port}`);
+  httpServer.listen(port, 'localhost', () => {
+    console.log(`> Ready on ${useCaddy ? 'http' : 'https'}://localhost:${port}`);
   });
 });

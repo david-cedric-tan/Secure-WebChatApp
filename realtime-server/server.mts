@@ -40,7 +40,7 @@ if (!useCaddy) {
 //=============== FOR DEVELOPMENT/TESTING LOCALHOST  =====================
 const io = new Server(httpServer, {
   cors: {
-    origin: ['http://localhost:3000', 'https://localhost:3000', 'https://alien888.duckdns.org'],
+    origin: ['https://0.0.0.0:3000','http://localhost:3000', 'https://localhost:3000', 'https://alien888.duckdns.org'],
     methods: ['GET', 'POST']
   }
 })
